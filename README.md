@@ -19,6 +19,10 @@ merge-sub-gits local
 ```
 cd musicApi
 ```
+##### 安装依赖
+```
+npm install
+```
 ##### 运行接口
 ```
 node app.js
