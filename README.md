@@ -9,10 +9,3 @@ yarn install
 ```
 yarn serve
 ```
-
-### 运行musicApi
-```
-cd musicApi
-yarn install
-node app.js
-```
