@@ -24,7 +24,6 @@
     <div v-else class="center2" ref="p">
       <div class="lyric" v-for="item,i in ly" :key="i">
         <p :class="{active:currentTime*1000>=item.time&&currentTime*1000<item.pre}">{{item.lyric}}</p>
-        
       </div>
     </div>
   <!-- 播放器 -->
@@ -33,7 +32,7 @@
         <span class="currentTime">{{formatTime(currentTime)}}</span>
         <div class="totalProgress" @click="handlerProgress">
           <div ref="currentProgress" class="currentProgress">
-            <div v-drag='{ni,changeTime}'  class="point"></div>
+            <div v-drag="{totalTime,changeTime}" class="point"></div>
           </div>
         </div>
         <span class="totalTime">{{formatTime(totalTime)}}</span>
@@ -73,31 +72,35 @@
 
 <script>
 import { reactive, ref } from "@vue/reactivity";
-import { computed, inject, onMounted, onUpdated, toRefs, watch } from '@vue/runtime-core';
+import { computed, inject, nextTick, onMounted, watch } from '@vue/runtime-core';
 import { useStore } from 'vuex';
 import {saveSong,formatTime} from '@/js'
+import usePercent from '@/js/usePercent'
 export default {
   name: "playMusic",
   props: ["playDetail",'paused','play','saveSong','totalTime'],
   emits:['changeCurrentTime','back'],
   setup(props,context) {
     const store = useStore()
-    let lyric = computed(()=>{
-      return store.state.lyric
-    })
+    // 获得歌词
     let ly = computed(()=>{
       return store.getters.getLyric
     })
+    // 获取当前的时间
     let currentTime = computed(()=>{
       return store.state.currentTime
     })
+    // 获取当前音乐播放状态
     let state = computed(()=>{
       return store.state.play
     })
     let p = ref(null)
     onMounted(()=>{
       store.dispatch('getLyricList',props.playDetail.id)
+      // 开始监听歌词变化
+      closeW()
     })
+    let totalTime = props.totalTime
     let playList = computed(()=>{
       return store.state.playList
     })
@@ -128,84 +131,76 @@ export default {
     // 切换歌曲
     function goPlay(n){
       changeMusic(n)
-      // console.log(index.value);
-        // if(index.value+n<0){
-        //   store.commit('setPlayIndex',playList.value.length-1)
-        // }else if(index.value+n > playList.value.length-1){
-        //   store.commit('setPlayIndex',0)
-        // }else{
-        //   store.commit('setPlayIndex',index.value+n)
-        // }
-        // store.commit('setIsPlay',true)
-        // // 这里得到的index.value已经是更新后的了  不需要再+n了 记住这个坑
-        // // let item = list.value[index.value+n]
-        // let item = list.value[index.value]
-        // store.dispatch('getLyricList',item.id)
-        // saveSong(item.id,item.name,item.al.picUrl)
-        // store.commit('setPlay',{id:item.id,name:item.name,picUrl:item.al.picUrl})
     }
-    let index1 = computed(()=>{
-      return store.state.index
-    })
+    
     let currentProgress = ref(null)
     watch(currentTime,(newValue)=>{
-      // 处理歌词
-      // 后面加个’‘为了防止没有歌词的而报错找不到clientHeight
-      let p1 = document.querySelector('p.active')||''
-      for(let i=0;i<ly.value.length;i++){
-        if(newValue*1000>=ly.value[i].time&&newValue*1000<ly.value[i].pre){
-          store.commit('setIndex',i)
-        }
-      }
-      let a = p1.clientHeight?p1.clientHeight:0
-      p.value.scrollTop = a*(index1.value) 
-      // p.value.scrollTop = a*(index1.value/6*5)
       let bili = newValue/props.totalTime*100
       currentProgress.value.style.width = bili + '%'
       if(formatTime(newValue) == formatTime(props.totalTime)){
         // 播放完了 切换歌曲
         changeMusic(1)
       }
+    }) 
+    
+    let index1 = ref(0)
+    let unWatch = null
+    // 监听播放时间方便处理歌词
+    const closeW = () => {
+      unWatch = watch(currentTime,(newValue)=>{
+      // 处理歌词
+      // 后面加个’‘为了防止没有歌词的而报错找不到clientHeight
+      // let p1 = document.querySelector('p.active')||''
+      for(let i=0;i<ly.value.length;i++){
+        if(newValue*1000>=ly.value[i].time&&newValue*1000<ly.value[i].pre){
+          index1.value = i
+        }
+      }
+      // let a = p1.clientHeight?p1.clientHeight:0 //44
+      p.value.scrollTop = 44*(index1.value-3)
     })
-    // 获得百分比
-    function getPercentage(ev){
-      let totalProgress = document.querySelector('.totalProgress')
-      // 获得总进度条的宽度
-      let totalWidth = totalProgress.offsetWidth
-      // 获得鼠标点击位置
-      let X = ev.pageX
-      // 获得左侧的偏移量
-      let left = totalProgress.offsetLeft
-      // 获得百分比
-      return (X-left)/totalWidth
     }
+    // 保证在DOM挂载好，在执行才能获取到p实例
+    // 实现触摸滚动时，停止歌词的自动滚动，在停止滚动时继续开启触摸滚动
+    nextTick(()=>{
+      p.value.ontouchstart = () => {
+        document.ontouchmove = (e) => {
+          unWatch()
+        }
+        document.ontouchend = (e)=>{
+          // 晚一点开启，更加流畅点
+          setTimeout(()=>{
+            closeW()
+          },500)
+          document.ontouchmove = null
+          document.ontouchend = null
+        }
+      }
+    })
     // 处理进度条
     function handlerProgress(event){
-      let bili = getPercentage(event)
+      // 获得百分比
+      const percent = usePercent(event)
       // 修改当前进度条的宽度
-      currentProgress.value.style.width = bili*100+'%'
-      // 修改当前播放的时间
-      context.emit('changeCurrentTime',props.totalTime*bili)
+      currentProgress.value.style.width = percent*100+'%'
+      // 修改当前播放的时间 
+      context.emit('changeCurrentTime',props.totalTime*percent)
     }
-    function ni(){
-      return props.totalTime
-    }
+    // 给自定义指令传递参数
     function changeTime(time){
       context.emit('changeCurrentTime',time)
     }
+    
     return {
-      ni,
       p,
-      lyric,
       ly,
       currentTime,
-      // curTime,
       goPlay,
       state,
       formatTime,
       handlerProgress,
       currentProgress,
-      changeTime
+      changeTime,
     }
   },
 };

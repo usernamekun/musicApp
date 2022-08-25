@@ -1,19 +1,15 @@
 <template>
   <!-- {{$refs.audio.paused}} -->
   <router-view />
-  <bottom v-show="$route.meta.showFoot != false" />
+  <Bottom v-show="$route.meta.showFoot != false" />
 </template>
 <script>
 import { reactive, ref } from "@vue/reactivity";
 import { mapState, useStore } from "vuex";
 import { computed, onMounted, onUpdated, provide, watch } from "@vue/runtime-core";
-import playMusic from "@/components/playMusic.vue";
-import bottom from '@/components/bottom'
 import Bottom from './components/bottom.vue';
 export default {
   components: {
-    playMusic,
-    bottom,
     Bottom
   },
   setup() {

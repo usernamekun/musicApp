@@ -37,7 +37,6 @@ export default createStore({
       profile:{}
     },
     // 歌词的下标
-    index:0,
     isshow:true,
     keyword:''
   },
@@ -96,7 +95,7 @@ export default createStore({
   actions: {
     async getLyricList({commit},id){
       let result = await getLyric(id)
-      commit('GETLYRIC',result.lrc.lyric)
+      commit('GETLYRIC',result.lrc?result.lrc.lyric:'')
     },
     async getToken({commit},{phone,password}){
       let result = await Login(phone,password)

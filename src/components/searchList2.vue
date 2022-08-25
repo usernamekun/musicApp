@@ -21,16 +21,13 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import {useStore } from 'vuex'
 import { onMounted, onUpdated, reactive } from '@vue/runtime-core';
 import { saveSong } from '@/js';
 import { useRouter } from 'vue-router';
-export default {
-  name:'music',
-  props:['tracks','keyword'],
-  emits:['click1'],
-  setup(props,context){
+    const props = defineProps(['tracks','keyword'])
+    const emit = defineEmits(['click1'])
     const store = useStore()
     const router = useRouter()
     let state = reactive({
@@ -39,7 +36,7 @@ export default {
       songCount:0
     })
     function play(item,index){
-      context.emit('click1',true)
+      emit('click1',true)
       store.commit('setShow',true)
       router.push({path:'/musiclist',query:{keyword:item.keyword}})
       store.commit('setKeyword',item.keyword)
@@ -50,16 +47,6 @@ export default {
       localStorage.setItem("keyword", JSON.stringify(state.keyword));
     }
     
-    // 下次使用生命周期要三思，会不会导致别的属性无了
-    onUpdated(()=>{
-      // console.log(props.tracks);
-      // store.commit('setPlayList',props.tracks)
-    })
-    return {
-      play,
-    }
-  }
-};
 </script>
 
 <style scoped lang="less">

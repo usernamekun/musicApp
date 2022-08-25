@@ -85,12 +85,6 @@ export default {
       // state.isshow = isshow
       store.commit('setShow',false)
     }
-    // 下次使用生命周期要三思，会不会导致别的属性无了
-    // onBeforeUpdate(()=>{
-    //   // console.log('111');
-    //   // store.commit('setPlayList',props.tracks)
-    //   getSearch()
-    // })
     return {
       play,
       search,

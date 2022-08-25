@@ -24,7 +24,7 @@
     <play-music
       :play="changeBandler"
       @back="isshow = !isshow"
-      v-show="!isshow"
+      v-if="!isshow"
       :paused="paused"
       :playDetail="list[playCurrentIndex]"
       :totalTime="$refs.audio && $refs.audio.duration"
@@ -43,6 +43,8 @@ import { reactive, ref } from "@vue/reactivity";
 import { mapState, useStore } from "vuex";
 import {
   computed,
+  nextTick,
+  onBeforeMount,
   onMounted,
   onUpdated,
   provide,
@@ -65,11 +67,14 @@ export default {
     // 获取ref标签的方法
     let audio = ref(null);
     let paused = ref(true);
+    onBeforeMount(()=>{
+      console.log(audio.value);
+    })
     function changeBandler() {
       if (paused.value) {
         audio.value.play();
         // 设置音量
-        audio.value.volume = 0.06;
+        audio.value.volume = 1;
         saveSong(
           list.value[playCurrentIndex.value].id,
           list.value[playCurrentIndex.value].name,

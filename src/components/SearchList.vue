@@ -43,9 +43,8 @@ export default {
       saveSong(item.id,item.name,item.al.picUrl)
       store.commit('setPlay',{id:item.id,name:item.name,picUrl:item.al.picUrl})
     }
-    // 下次使用生命周期要三思，会不会导致别的属性无了
-    onUpdated(()=>{
-      // store.commit('setPlayList',props.tracks)
+    onMounted(()=>{
+      console.log(props.tracks);
     })
     return {
       play

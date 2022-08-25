@@ -10,7 +10,7 @@
           <img :src="img.picUrl" />
           <div class="count">
             <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-bofang"></use>
+              <use xlink:href="#icon-b`ofang"></use>
             </svg>
             <span>{{ handlerCount(img.playCount) }}</span>
           </div>
@@ -95,7 +95,6 @@ export default {
         width: 2rem;
         height: 2rem;
         border-radius: 0.2rem;
-        background-color: aqua;
       }
       span {
         font-size: 0.26rem;

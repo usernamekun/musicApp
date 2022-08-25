@@ -1,13 +1,14 @@
 import store from '@/store'
 // 自定义指令
 // 移动端的拖拽
-const drag = { 
+const drag = {
   // binding可以接受到使用这个指令的组件的方法
-  beforeMount(el, binding) {
+  mounted(el, binding) {
     el.ontouchstart = function(){
       let totalProgress = document.querySelector('.totalProgress')
       let currentProgress = document.querySelector('.currentProgress')
-      let totalTime = binding.value.ni()
+      console.log(binding);
+      let totalTime = binding.value.totalTime
       document.ontouchmove = function(e){
         var ev = 'ontouchstart' in document ? e.touches[0] : e //这样就能同时在pc端和移动端使用了
         let X = ev.clientX
